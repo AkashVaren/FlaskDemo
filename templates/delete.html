@@ -1,0 +1,22 @@
+
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css')}}">
+   </head>
+<body>
+<h1>Files which are available</h1>
+  {% for filename in files if filename.split('.')[1]=="pdf" or filename.split('.')[1]=="txt"%}
+  <li style="cursor: pointer;" onclick="a(this.innerText)" >{{filename}}</li>
+  {% endfor %}
+</body>
+<script type="text/javascript">
+function a(file){
+  fetch("/delete/"+file)
+  window.location.reload();
+}
+</script>
+</html>

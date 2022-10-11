@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css')}}">
+   </head>
+<body>
+<h1>Upload file</h1>
+<form action="/upload" method="POST" enctype="multipart/form-data">
+    <div>
+        <label>Select file</label>
+        <div>
+            <input type="file" id="fileUpload" name="file">
+        </div>
+    </div>
+    <button style="display:none" id="bt" type="submit">Upload</button>
+</form>
+<p>{{content}}</p>
+<a href="/delete">Delete files</a>
+<script type="text/javascript">
+document.getElementById('fileUpload').addEventListener('change', event => {
+button=document.getElementById('bt')
+button.style.display="block"
+})
+</script>
+
+</body>
+</html>

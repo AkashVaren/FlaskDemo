@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css')}}">
+    <style>
+      #container{
+        position:relative; left:80px;
+      }
+      li{
+        cursor: pointer;
+      }
+      #data{
+        border:1px solid #999999;
+        color:#6f6f6f;
+        font-size:10px;
+        width:100%;
+        position: relative;
+        display: inline-block;
+        height: auto;
+      }
+      #scroll-element #data{
+        height: 20rem;
+        width: 80rem;
+        overflow: scroll;
+      }
+      #loading {
+    width: 2rem;
+    height: 2rem;
+    border: 5px solid #f3f3f3;
+    border-top: 6px solid black;
+    border-radius: 100%;
+    margin: auto;
+    visibility: hidden;
+    animation: spin 1s infinite linear;
+}
+#loading.display {
+    visibility: visible;
+}
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+    </style>
+   </head>
+
+
+<body>
+<h1>Read or download</h1>
+<button id="toggle" onclick="toggle()">Enable Read Online</button><br>
+  {% for filename in files if filename.split('.')[1]=="pdf" or filename.split('.')[1]=="txt"%}
+  <li onclick="b(this.innerText)">{{filename}}</li>
+  {% endfor %}
+  <div id="container" style="display:none;">
+  <h3 id="heading"></h3>
+  <div id="scroll-element" >
+  <p id="data"></p>
+  <div id="loading"></div>
+  <p id="end"></p>
+  </div>
+</div>
+</body>
+<script src="https://cdn.socket.io/4.5.0/socket.io.min.js" integrity="sha384-7EyYLQZgWBi67fBtVxw60/OWl1kjsfrPFcaU0pp0nAh+i8FD068QogUvg85Ewy1k" crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/downloadjs/1.4.8/download.min.js"></script>
+<script
+  src="https://code.jquery.com/jquery-3.6.1.slim.min.js"
+  integrity="sha256-w8CvhFs7iHNVUtnSP0YKEg00p9Ih13rlL9zGqvLdePA="
+  crossorigin="anonymous"></script>
+<script type="text/javascript">
+  const loader = document.querySelector("#loading");
+  function displayLoading() {
+    loader.classList.add("display");
+}
+function hideLoading() {
+    loader.classList.remove("display");
+}
+
+var count=0
+var filename=""
+var flag=0
+var completedFlag=0
+//var total=Number.MAX_SAFE_INTEGER
+function b(file){
+  document.getElementById("data").innerText = ''
+  document.getElementById("end").innerHTML=''
+  count=0
+  if(completedFlag==1){
+    document.getElementById("end").innerHTML='Please wait previous request is loading'
+  }
+  else{
+    if(document.getElementById("toggle").innerText=="Disable Read Online"){
+      displayLoading()
+      completedFlag=1
+    socket.emit('readFile', {'data': file,'c':count});
+    }
+    else{
+      fetch("/downloadFile/"+file).then(res=>{
+            return res.blob();
+        }).then(blob=>{
+            download(blob)
+        }).catch(err=>console.log(err));
+    }
+    filename=file
+  }
+}
+jQuery(function($) {
+    $('#data').on('scroll', function() {
+        if($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight){
+            count+=100
+            socket.emit('readFile', {'data': filename,'c':count});
+        }
+    })
+});
+
+function toggle(){
+  if(document.getElementById("toggle").innerText=="Enable Read Online"){
+    document.getElementById("container").style.display="block";
+    document.getElementById("toggle").innerHTML="Disable Read Online";
+  }
+  else{
+    document.getElementById("container").style.display="none";
+    document.getElementById("toggle").innerHTML="Enable Read Online";
+  }
+}
+var socket = io();
+    socket.on('connect', function() {
+        console.log("connect");
+    });
+
+socket.on('disconnect',()=>{
+  console.log('disconnect');
+})
+socket.on('read_File',(data)=>{
+  hideLoading()
+  completedFlag=0
+  document.getElementById("end").innerHTML=''
+  document.getElementById("data").innerText+=data['data']
+})
+</script>
+</html>
+
+
+
+
